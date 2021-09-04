@@ -104,10 +104,22 @@ mkfs: mkfs.c fs.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
-UPROGS= \
-	_cat _echo _forktest _grep _init _kill _ln _ls _divide _mkdir \
-	_rm _sh _stressfs _usertests _wc _zombie \
-#
+UPROGS=\
+	_cat\
+	_echo\
+	_forktest\
+	_grep\
+	_init\
+	_kill\
+	_ln\
+	_ls\
+	_mkdir\
+	_rm\
+	_sh\
+	_stressfs\
+	_usertests\
+	_wc\
+	_zombie\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -202,5 +214,11 @@ tar:
 	mkdir -p /tmp/xv6
 	cp dist/* dist/.gdbinit.tmpl /tmp/xv6
 	(cd /tmp; tar cf - xv6) | gzip >xv6-rev10.tar.gz  # the next one will be 10 (9/17)
+
+
+bootskel.img: bootskel.S
+	as bootskel.S -o bootskel.o
+	ld -Ttext=0x7c00 -e start bootskel.o -o bootskellinked.o
+	objcopy -O binary bootskellinked.o bootskel.img
 
 .PHONY: dist-test dist
