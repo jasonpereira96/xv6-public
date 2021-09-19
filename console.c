@@ -18,6 +18,7 @@
 #include "x86.h"
 
 static void consputc(int);
+static void consputc_color(int, int);
 
 static int panicked = 0;
 
@@ -149,9 +150,16 @@ panic(char *s)
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
   static void
-cgaputc(int c)
+cgaputc(int c, int color)
 {
-  int pos;
+  int pos, text_color;
+
+  // if -1 is passed in, use the default color
+  if (color == -1) {
+    text_color = 0x07; // grey
+  } else {
+    text_color = color;
+  }
 
   // Cursor position: col + 80*row.
   outb(CRTPORT, 14);
@@ -164,7 +172,7 @@ cgaputc(int c)
   else if (c == BACKSPACE) {
     if (pos > 0) --pos;
   } else
-    crt[pos++] = (c&0xff) | 0x0700;  // gray on black
+    crt[pos++] = (c&0xff) | (text_color * 16 * 16);  // gray on black
 
   if ((pos/80) >= 24){  // Scroll up.
     memmove(crt, crt+80, sizeof(crt[0])*23*80);
@@ -180,7 +188,7 @@ cgaputc(int c)
 }
 
   void
-consputc(int c)
+consputc_color(int c, int color)
 {
   if (panicked) {
     cli();
@@ -192,7 +200,13 @@ consputc(int c)
     uartputc('\b'); uartputc(' '); uartputc('\b');
   } else
     uartputc(c);
-  cgaputc(c);
+  cgaputc(c, color);
+}
+
+  void
+consputc(int c)
+{
+  consputc_color(c, -1); // -specify -1 for the default color
 }
 
 #define INPUT_BUF 128
@@ -288,18 +302,27 @@ consoleread(struct file *f, char *dst, int n)
 int
 consoleioctl(struct file *f, int param, int value)
 {
-  cprintf("Got unknown console ioctl request. %d = %d\n",param,value);
-  return -1;
+  if (param == 0) {
+    // set the device payload to the value of the color
+    f->dev_payload = value;
+    return 0;
+  } else {
+    cprintf("Got unknown console ioctl request. %d = %d\n",param,value);
+    return -1;
+  }
 }
 
 int
 consolewrite(struct file *f, char *buf, int n)
 {
   int i;
+  int color = f->dev_payload;
+  // hack alert
+  color = color == 0x00 ? -1 : color;
 
   acquire(&cons.lock);
   for(i = 0; i < n; i++)
-    consputc(buf[i] & 0xff);
+    consputc_color(buf[i] & 0xff, color);
   release(&cons.lock);
 
   return n;

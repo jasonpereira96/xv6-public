@@ -7,7 +7,7 @@ struct file {
   struct inode *ip;
   uint off;
 
-  void * dev_payload;
+  int dev_payload;
 };
 
 

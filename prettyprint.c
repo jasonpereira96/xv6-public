@@ -5,7 +5,7 @@ char *hoarequote = "There are two ways of constructing a software design: One wa
 
 int main(int argc, char** argv) {
   printf(1,"First off, printing in regular color.\n");
-  printf(1,"Now changing stdout color.\n");
+  printf(1,"Now changing stdout color.11111\n");
   if(ioctl(1,0,3)<0) // 1 for stdout
   {
     printf(2,"ioctl failed changing color\n");
