@@ -21,6 +21,7 @@ static void consputc(int);
 static void consputc_color(int, int);
 
 static int panicked = 0;
+static int global_color = 7;
 
 static struct {
   struct spinlock lock;
@@ -251,7 +252,7 @@ consoleintr(int (*getc)(void))
       if (c != 0 && input.e-input.r < INPUT_BUF) {
         c = (c == '\r') ? '\n' : c;
         input.buf[input.e++ % INPUT_BUF] = c;
-        consputc(c);
+        consputc_color(c, global_color);
         if (c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF) {
           input.w = input.e;
           wakeup(&input.r);
@@ -305,6 +306,9 @@ consoleioctl(struct file *f, int param, int value)
   if (param == 0) {
     // set the device payload to the value of the color
     f->dev_payload = value;
+    return 0;
+  } else if (param == 1) {
+    global_color = value;
     return 0;
   } else {
     cprintf("Got unknown console ioctl request. %d = %d\n",param,value);

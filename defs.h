@@ -29,6 +29,11 @@ void            consoleintr(int(*)(void));
 int             consoleioctl(struct file *,int,int);
 void            panic(char*) __attribute__((noreturn));
 
+// display.c
+void displayinit();
+int displayioctl(struct file *, int , int);
+int displaywrite(struct file *, char *, int);
+
 // exec.c
 int             exec(char*, char**);
 

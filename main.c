@@ -5,6 +5,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
+#include "vga.h"
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -27,6 +28,7 @@ main(void)
   cprintf("\ncpu%d: starting Fall 2021 xv6\n\n", cpunum());
   ioapicinit();    // another interrupt controller
   consoleinit();   // console hardware
+  displayinit();
   uartinit();      // serial port
   pinit();         // process table
   binit();         // buffer cache
